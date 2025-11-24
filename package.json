@@ -69,7 +69,7 @@
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "expect-type": "^1.2.2",
-    "prisma": "^6.19.0",
+    "prisma": "^7.0.0",
     "semantic-release": "^25.0.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
