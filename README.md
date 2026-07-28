@@ -104,6 +104,10 @@ const role = v.parse(RoleEnum, 'USER');
 console.log(RoleValues); // ['USER', 'ADMIN']
 ```
 
+> On `"moduleResolution": "node16"` or `"nodenext"` in an ESM package, TypeScript does not allow
+> importing a directory. Point at the barrel file instead:
+> `import { UserSchema } from './src/generated/valibot/index.js';`
+
 ## Features
 
 ### 🎯 Enum Support

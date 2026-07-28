@@ -65,8 +65,31 @@ function mapFieldToValibot(
   return base;
 }
 
+const ENUMS_FILENAME = 'enums.ts';
+
 function modelFilename(modelName: string) {
   return `${modelName}.schema.ts`;
+}
+
+/**
+ * Import specifier for a file emitted next to the importer.
+ *
+ * The emitted files are TypeScript sources that the consumer compiles, so the
+ * specifier has to be one tsc accepts, not the name on disk. Measured against
+ * TypeScript 5.9 for a specifier naming a sibling `.ts` file:
+ *
+ *   `./User.schema.js`  resolves under bundler, node10, node16 and nodenext,
+ *                       in both CommonJS and ESM, with no compiler flag.
+ *   `./User.schema`     fails under node16/nodenext when the importer is an ES
+ *                       module (TS2835).
+ *   `./User.schema.ts`  fails everywhere without `allowImportingTsExtensions`
+ *                       (TS5097), and that flag in turn forbids emit, so it is
+ *                       not an option for anyone compiling to JavaScript.
+ *
+ * `.js` is therefore the only form that works for every consumer.
+ */
+function siblingSpecifier(filename: string): string {
+  return `./${filename.replace(/\.ts$/, '.js')}`;
 }
 
 function buildObjectSchema(
@@ -97,7 +120,9 @@ function buildSchemasForModel(
   const usedEnumNames = getUsedEnumNames(model);
   if (usedEnumNames.length > 0) {
     const importNames = usedEnumNames.map((name) => `${name}Enum`).join(', ');
-    lines.push(`import { ${importNames} } from './enums';`);
+    lines.push(
+      `import { ${importNames} } from '${siblingSpecifier(ENUMS_FILENAME)}';`,
+    );
   }
   lines.push('');
 
@@ -264,7 +289,7 @@ export async function generateValibot(options: GeneratorOptions) {
     if (enums.length > 0) {
       const enumsContent = buildEnumsFile(enums, enumValueMode);
       await fs.writeFile(
-        path.join(generatedDir, 'enums.ts'),
+        path.join(generatedDir, ENUMS_FILENAME),
         enumsContent,
         'utf8',
       );
@@ -274,11 +299,12 @@ export async function generateValibot(options: GeneratorOptions) {
     // Index barrel
     const indexLines: string[] = [];
     for (const model of models) {
-      const fileBase = `./${modelFilename(model.name)}`;
-      indexLines.push(`export * from '${fileBase.replace(/\\.ts$/, '')}';`);
+      indexLines.push(
+        `export * from '${siblingSpecifier(modelFilename(model.name))}';`,
+      );
     }
     if (enums.length > 0) {
-      indexLines.push("export * from './enums';");
+      indexLines.push(`export * from '${siblingSpecifier(ENUMS_FILENAME)}';`);
     }
     await fs.writeFile(
       path.join(generatedDir, 'index.ts'),

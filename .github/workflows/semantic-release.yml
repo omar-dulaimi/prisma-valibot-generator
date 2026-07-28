@@ -43,8 +43,11 @@ jobs:
         npm run lint
         npm run ci:test
         
-    - name: Build package
-      run: ./package.sh
+    # Runs package.sh and then checks the tarball it produces from an empty
+    # directory, so a release cannot publish generated output that fails to
+    # compile. package/ is left staged for @semantic-release/npm's pkgRoot.
+    - name: Build and verify package
+      run: npm run test:packed
       
     # No npm token: the package is configured for Trusted Publishing with tokens disallowed, so
     # auth is the OIDC exchange alone. Setting NPM_TOKEN here would write a conflicting .npmrc.

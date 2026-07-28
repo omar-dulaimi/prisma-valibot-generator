@@ -17,6 +17,7 @@
     "test:valibot": "npm run gen-example && vitest run tests/valibot-generator.test.ts",
     "test:watch": "vitest --watch",
     "test:type-check": "tsc --noEmit",
+    "test:packed": "node scripts/verify-packed-output.mjs",
     "lint": "eslint src/ tests/ --fix",
     "format": "prettier --write src/ tests/",
     "prerelease": "npm run gen-example && npm run test:type-check",

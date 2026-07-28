@@ -8,26 +8,34 @@ This repository uses GitHub Actions for automated testing, building, and releasi
 **Trigger**: Push/PR to master branch
 
 **Jobs**:
-- **test**: Runs on Node.js 18.x, 20.x, 22.x
+- **filter**: Decides whether the rest of the run is worth doing. It skips when a push or PR touches
+  only documentation and carries no `feat`/`fix`/`perf`/`revert`/`refactor`/`test`/`build`/`ci` commit
+  and no `BREAKING CHANGE`. Both jobs below depend on it, so a docs-only push shows CI as skipped.
+- **test**: Runs on Node.js 22.x and 24.x
   - Builds project with `npm run gen-example`
   - Type checking with `npm run test:type-check`
-  - Linting with `npm run lint`
-  - Basic tests with `npm run test:basic`
-  - Comprehensive tests with coverage
-  - MongoDB-specific tests
-  - Multi-provider tests (sequential)
-  - Uploads coverage to Codecov
-- **package-test**: Tests package integrity
-  - Builds and packages the project
-  - Verifies package can be created successfully
+  - Linting with `npm run lint` (`continue-on-error`, so lint cannot fail the job)
+  - Tests with `npm run ci:test`
+- **package-test**: Checks the artifact users receive, on Node.js 22.x
+  - `npm run test:packed`: builds, runs `package.sh`, packs the tarball, installs it into an empty
+    directory, runs `prisma generate`, and type-checks the generated output under `bundler`, `node10`,
+    `node16` and `nodenext`, in both CommonJS and ESM
+  - Uploads `package/` as a build artifact
+
+Note that the unit tests import the generator from `src/` and load the generated barrel with
+`await import('.../index.ts')`, which the Vitest loader resolves regardless of what `tsc` would say.
+`package-test` is the only job that exercises the published package, which is why it exists.
 
 ### 2. Semantic Release (`semantic-release.yml`)
-**Trigger**: Push to master branch
+**Trigger**: Push to master branch, or manual `workflow_dispatch` (no inputs; the version bump comes
+from the commits, not from a chosen release type)
 
 **Features**:
 - Uses conventional commits for automated releases
 - Generates changelogs automatically
 - Creates GitHub releases with release notes
+- Runs the same `npm run test:packed` gate before publishing, so a release cannot ship generated output
+  that fails to compile
 - Publishes to npm from the `package/` directory
 
 ## Configuration Files
@@ -113,22 +121,24 @@ feat!: change API for schema configuration
 
 To trigger a manual release:
 
-1. Go to Actions → Release workflow
+1. Go to Actions → Semantic Release
 2. Click "Run workflow"
-3. Select release type (patch/minor/major)
-4. Click "Run workflow"
+3. Click "Run workflow"
+
+The workflow takes no inputs. semantic-release derives the version from the commits since the last tag,
+so there is no release type to choose; if no releasable commit is present, the run publishes nothing.
 
 ## Testing Locally
 
 ```bash
-# Run basic tests
-npm run test:basic
+# Build the generator and regenerate prisma/generated from prisma/schema.prisma
+npm run gen-example
 
-# Run with coverage
-npm run test:coverage
+# Run the test suite
+npm test
 
-# Run multi-provider tests
-npm run test:multi:sequential
+# Check the packed artifact: pack, install into an empty dir, generate, type-check the output
+npm run test:packed
 
 # Test release process (dry run)
 npm run release:dry
@@ -144,7 +154,6 @@ npm run lint
 
 - **GitHub Actions**: View workflow runs in the Actions tab
 - **NPM**: Monitor package downloads and versions
-- **Codecov**: Track code coverage trends
 
 ## Troubleshooting
 
@@ -161,9 +170,13 @@ npm run lint
    - Check conventional commit format, and that a releasable commit type is present.
    - Ensure all tests pass; the release job is gated on CI.
 
-3. **Coverage upload fails**:
-   - Verify CODECOV_TOKEN
-   - Check coverage file generation
+3. **`npm run test:packed` fails**:
+   - It reports the exact import specifier and the `tsc` errors it produced. Generated files are
+     TypeScript sources the consumer compiles, so relative specifiers must end in `.js`: that resolves
+     to the sibling `.ts` under `bundler`, `node10`, `node16` and `nodenext`, in CommonJS and ESM,
+     with no compiler flag. `.ts` needs `allowImportingTsExtensions` (which forbids emit) and
+     extensionless breaks under `node16`/`nodenext` ESM.
+   - It installs from a real tarball, so it needs network access.
 
 ### Getting Help
 

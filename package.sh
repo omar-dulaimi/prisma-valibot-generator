@@ -1,4 +1,9 @@
 #!/bin/bash
+# Without this, a failing `npx tsc` below is ignored: `rm -rf lib` has already run, `cp -r lib` then
+# fails with "No such file or directory", and the script still exits 0 because `echo` is last. The
+# release job would go on to publish a package with no lib/ in it.
+set -euo pipefail
+
 START_TIME=$SECONDS
 
 echo "Building package..."
