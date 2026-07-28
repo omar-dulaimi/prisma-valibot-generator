@@ -1,3 +1,24 @@
+## [2.0.0](https://github.com/omar-dulaimi/prisma-valibot-generator/compare/v1.2.0...v2.0.0) (2026-07-28)
+
+### ⚠ BREAKING CHANGES
+
+* **breaking:** every relative import in the generated output now ends in
+`.js` rather than `.ts`, so regenerate after upgrading. Toolchains that resolve
+specifiers literally against the filesystem, notably Deno and Node's own type
+stripping, must now compile the generated files with tsc or a bundler instead
+of executing them directly. Every tsc and bundler configuration is either
+unaffected or fixed by this change.
+
+Claude-Session: https://claude.ai/code/session_018FDR2Y8LpjgfsdD4FhQVZZ
+
+### 🐛 Bug Fixes
+
+* **breaking:** emit .js import specifiers so generated code compiles ([188611b](https://github.com/omar-dulaimi/prisma-valibot-generator/commit/188611b487838e2d3860defca98bb850b5a04f33))
+
+### 📚 Documentation
+
+* **ci:** describe the workflows that exist and the auth that works ([2d344cd](https://github.com/omar-dulaimi/prisma-valibot-generator/commit/2d344cdda2376bf0b483d9d4191344b8282a433f))
+
 ## [1.2.0](https://github.com/omar-dulaimi/prisma-valibot-generator/compare/v1.1.0...v1.2.0) (2025-09-26)
 
 ### 🚀 Features
