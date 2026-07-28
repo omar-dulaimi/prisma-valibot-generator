@@ -13,7 +13,7 @@ jobs:
       should_run: ${{ steps.compute.outputs.should_run }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Decide if CI should run
@@ -82,7 +82,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v6
@@ -114,7 +114,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -136,7 +136,7 @@ jobs:
         npm pack --dry-run
         
     - name: Upload package artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: package-build
         path: package/
