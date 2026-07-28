@@ -26,13 +26,13 @@ generator valibot {
 - Language: TypeScript, strict mode; 2‑space indent.
 - Files: `kebab-case.ts`; types/interfaces: `PascalCase`; variables/functions: `camelCase`.
 - Use ESLint (`eslint.config.mjs`) with `@typescript-eslint`; Prettier for formatting.
-- No console noise in library code—use `src/utils/logger.ts` (`DEBUG_PRISMA_VALIBOT=1`).
+- No console noise in library code. Use `src/utils/logger.ts` (`DEBUG_PRISMA_VALIBOT=1`).
 
 ## Testing Guidelines
 - Framework: Vitest. Test files in `tests/**/*.{test,spec}.ts`.
 - Prefer small, isolated fixtures (see `tests/helpers/`).
 - Add tests for new behavior and edge cases; type checks must pass (`npm run test:type-check`).
-- Coverage is configured; no strict threshold—aim to cover new/changed code.
+- Coverage is configured; no strict threshold, so aim to cover new/changed code.
 
 ## Commit & Pull Request Guidelines
 - Commits: Conventional Commits (e.g., `feat:`, `fix:`, `chore:`, `docs:`, `test:`). Used by semantic‑release.
